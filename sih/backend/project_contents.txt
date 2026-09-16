@@ -1,0 +1,446 @@
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\.env
+============================================================
+SUPABASE_URL=https://mkdcziodmjntwwweuogb.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_usa5oqUzcGUaJzwTg-8cSQ_drtHA5Po
+JWT_SECRET=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZGN6aW9kbWpudHd3d2V1b2diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI2NTQwMywiZXhwIjoyMTAzODQxNDAzfQ.4d2xFDWa6DVN6TUdYgQGAlK_bfF2JS4g3RwylotOAfg
+PORT=5000
+
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\New Text Document.txt
+============================================================
+the government rep must be able to log in to app, he must be able to view no of students in each skill, hghest skilled sector, low pursued areas, reqd skills (searching), get data on skill gap etc. They wont give challenges but intervene to promote certain skills or even must be able to hire indiv for public sector jobs.
+
+the firt page is immediately aftet they log in, they have to see two major blocks. One is access the students skills, proof of work, all about the students end. the second block must contain the recruitwrs end, where they will be seeing the insudry needs and also the chalenges they posted. They also should have the third block where they can see the skill gap and also the in-demand sector. it hsould have govr_representative, govt_job, govt_job_skisls, govt_appliction. it should have aprovison to show the highet demand sector, low demand sector, skill gap, and all tge features we have discussed earlier. keep all this in mind. the colour must be oft green on the outside, soft_but_darker shade of green for the blocks and the textss should be in green colour. use the most advanced and model looking ui, make it vibrant also. 
+
+Gov Rep Login
+
+View number of students in each skill
+
+Identify highest-skilled sectors
+
+Identify low-pursued sectors
+
+Search required skills
+
+Skill gap analysis
+
+View regional skill distribution
+
+Public sector recruitment
+
+Skill promotion campaigns
+
+Generate reports and statistics
+
+Now, my work is mjorly focused on government module. It should have the following features. When the govt authority logs in, he should get the dashboard having statistics about no of students pursuing top 5 skills, top priority skill from recruiters in a graphical format. 
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\requirements.txt
+============================================================
+fastapi
+uvicorn
+supabase
+python-dotenv
+PyJWT
+passlib[bcrypt]
+python-multipart
+pydantic
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\run.py
+============================================================
+import uvicorn
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\main.py
+============================================================
+from fastapi import FastAPI
+
+from app.routers.auth_router import (
+    router as auth_router
+)
+
+from app.routers.government_router import (
+    router as government_router
+)
+
+app = FastAPI(
+    title="SIH Government Dashboard API"
+)
+
+app.include_router(
+    auth_router
+)
+
+app.include_router(
+    government_router
+)
+
+@app.get("/")
+def root():
+
+    return {
+        "status": "running"
+    }
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\config\settings.py
+============================================================
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
+)
+print("SUPABASE_URL =", SUPABASE_URL)
+print("SUPABASE_KEY =", SUPABASE_KEY)
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\config\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\database\supabase_client.py
+============================================================
+from supabase import create_client
+from app.config.settings import (
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\database\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\middleware\jwt_auth.py
+============================================================
+from fastapi import Header
+from fastapi import HTTPException
+
+import jwt
+
+from app.config.settings import (
+    JWT_SECRET,
+    JWT_ALGORITHM
+)
+
+def verify_token(
+    authorization: str = Header(None)
+):
+
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing token"
+        )
+
+    try:
+
+        token = authorization.replace(
+            "Bearer ",
+            ""
+        )
+
+        payload = jwt.decode(
+            token,
+            JWT_SECRET,
+            algorithms=[JWT_ALGORITHM]
+        )
+
+        return payload
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token"
+        )
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\middleware\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\models\auth_models.py
+============================================================
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\models\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\routers\auth_router.py
+============================================================
+from fastapi import APIRouter
+from fastapi import HTTPException
+
+from app.models.auth_models import (
+    LoginRequest,
+    TokenResponse
+)
+
+from app.services.auth_service import (
+    get_gov_rep_by_email
+)
+
+from app.utils.password_handler import (
+    verify_password
+)
+
+from app.utils.jwt_handler import (
+    create_access_token
+)
+
+router = APIRouter(
+    prefix="/api/auth",
+    tags=["Authentication"]
+)
+
+@router.post(
+    "/login",
+    response_model=TokenResponse
+)
+def login(
+    request: LoginRequest
+):
+
+    gov_rep = get_gov_rep_by_email(
+        request.email
+    )
+
+    if not gov_rep:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
+
+    valid = verify_password(
+        request.password,
+        gov_rep["password_hash"]
+    )
+
+    if not valid:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
+
+    token = create_access_token(
+        {
+            "gov_rep_id":
+                gov_rep["gov_rep_id"],
+            "email":
+                gov_rep["email"]
+        }
+    )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\routers\government_router.py
+============================================================
+from fastapi import APIRouter
+
+from app.services.government_service import (
+    get_total_students,
+    get_total_skills,
+    get_top_skills
+)
+
+router = APIRouter(
+    prefix="/api/government",
+    tags=["Government"]
+)
+
+
+@router.get("/dashboard")
+def dashboard():
+
+    return {
+        "total_students": get_total_students(),
+        "total_skills": get_total_skills()
+    }
+
+
+@router.get("/top-skills")
+def top_skills():
+
+    return {
+        "top_skills": get_top_skills()
+    }
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\routers\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\services\auth_service.py
+============================================================
+from app.database.supabase_client import supabase
+
+def get_gov_rep_by_email(
+    email: str
+):
+
+    response = (
+        supabase
+        .table("government_representatives")
+        .select("*")
+        .eq("email", email)
+        .execute()
+    )
+
+    if not response.data:
+        return None
+
+    return response.data[0]
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\services\government_service.py
+============================================================
+from app.database.supabase_client import supabase
+
+
+def get_total_students():
+    result = supabase.table("students").select(
+        "student_id",
+        count="exact"
+    ).execute()
+
+    return result.count
+
+
+def get_total_skills():
+    result = supabase.table("skills").select(
+        "skill_id",
+        count="exact"
+    ).execute()
+
+    return result.count
+
+
+def get_top_skills():
+    result = (
+        supabase.table("student_skills")
+        .select(
+            "skill_id, skills(skill_name)"
+        )
+        .execute()
+    )
+
+    rows = result.data
+
+    counter = {}
+
+    for row in rows:
+        skill_name = row["skills"]["skill_name"]
+
+        counter[skill_name] = (
+            counter.get(skill_name, 0) + 1
+        )
+
+    sorted_skills = sorted(
+        counter.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    return sorted_skills[:10]
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\services\__init__.py
+============================================================
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\utils\jwt_handler.py
+============================================================
+from datetime import datetime, timedelta
+import jwt
+
+from app.config.settings import (
+    JWT_SECRET,
+    JWT_ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
+
+def create_access_token(data: dict):
+
+    payload = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    payload.update(
+        {"exp": expire}
+    )
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALGORITHM
+    )
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\utils\password_handler.py
+============================================================
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(
+    plain_password: str,
+    hashed_password: str
+):
+    return pwd_context.verify(
+        plain_password,
+        hashed_password
+    )
+
+============================================================
+FILE: C:\Users\user\OneDrive\Desktop\sih\sih\backend\app\utils\__init__.py
+============================================================
